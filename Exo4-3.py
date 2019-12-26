@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class BTreeNode(object):
     def __init__(self, t, isLeaf):
         self.keys = []
@@ -14,8 +15,8 @@ class BTreeNode(object):
         self.nbOfKeys = len(self.keys)
         i = self.nbOfKeys - 1
 
-        if (self.isLeaf):
-            while (i >= 0 and self.keys[i] > k):
+        if self.isLeaf:
+            while i >= 0 and self.keys[i] > k:
                 try:
                     self.keys[i + 1] = self.keys[i]
                 except:
@@ -27,12 +28,12 @@ class BTreeNode(object):
                 self.keys.append(k)
             self.nbOfKeys += 1
         else:
-            while (i >= 0 and self.keys[i] > k):
+            while i >= 0 and self.keys[i] > k:
                 i -= 1
 
-            if self.children[i + 1].nbOfKeys == 2*self.t - 1:
+            if self.children[i + 1].nbOfKeys == 2 * self.t - 1:
                 self.splitChild(i + 1, self.children[i + 1])
-                if (self.keys[i + 1] < k):
+                if self.keys[i + 1] < k:
                     i += 1
 
             self.children[i + 1].insertNonFull(k)
@@ -46,34 +47,43 @@ class BTreeNode(object):
 
         if not y.isLeaf:
             for j in range(self.t):
-                z.children[j] = y.children[j + self.t]
+                try:
+                    z.children[j] = y.children[j + self.t]
+                except:
+                    z.children.append(y.children[j + self.t])
 
         y.nbOfKeys = self.t - 1
 
         for j in range(self.nbOfKeys, i + 2, -1):
-            self.children[j + 1] = self.children[j]
+            try:
+                self.children[j + 1] = self.children[j]
+            except:
+                self.children.append(self.children[j])
 
         self.children.insert(i + 1, z)
 
         for j in range(self.nbOfKeys, i + 1, -1):
-            self.keys[j + 1] = self.keys[j]
+            try:
+                self.children[j + 1] = self.children[j]
+            except:
+                self.children.append(self.children[j])
 
         self.keys.insert(i, y.keys[self.t - 1])
 
         while len(y.keys) > y.nbOfKeys:
-            y.keys.pop(len(y.keys)-1)
+            y.keys.pop(len(y.keys) - 1)
 
         self.nbOfKeys += 1
 
     def traverse(self):
-        for i in range(self.nbOfKeys):
+        for i in range(len(self.keys)):
             if not self.isLeaf:
                 self.children[i].traverse()
-            print(" " + str(self.keys[i]))
+            print(" " + str(self.keys[i]), end='')
 
     def search(self, k):
         i = 0
-        while (i < self.nbOfKeys and k > self.keys[i]):
+        while i < self.nbOfKeys and k > self.keys[i]:
             i += 1
 
         if self.keys[i] == k:
@@ -113,7 +123,7 @@ class BTree(object):
                 s.splitChild(0, s.children[0])
 
                 i = 0
-                if (s.keys[0] < k):
+                if s.keys[0] < k:
                     i += 1
                 s.children[i].insertNonFull(k)
                 self.root = s
@@ -122,8 +132,7 @@ class BTree(object):
 
 
 tree = BTree(3)
-#testing tree
-'''tree.insert(10)
+tree.insert(10)
 tree.insert(20)
 tree.insert(5)
 tree.insert(6)
@@ -132,18 +141,9 @@ tree.insert(30)
 tree.insert(7)
 tree.insert(17)
 tree.insert(15)
-tree.insert(16)'''
+tree.insert(16)
 
-arr = np.arange(100)
-np.random.shuffle(arr)
-arr = list(arr)
-print(arr)
-
-for number in arr:
-    tree.insert(number)
-
-
+# printing the first two levels
 print(tree.root.keys)
 for leaf in tree.root.children:
-    print(leaf.keys)
-
+    print(leaf.keys, end=' ')
